@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Digital - IFPR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="dashboard-container">
+
+        <header class="dashboard-header">
+            <div class="logo">
+                <img src="IFPR.png.png" alt="Logotipo do IFPR">
+                <h2>IFPR - Campus União da Vitória</h2>
+            </div>
+            <div class="header-widgets">
+                <div class="date-widget">
+                    <span id="date"></span>
+                </div>
+                <div class="clock-widget">
+                    <span id="time"></span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+			<div class="announcement-panel">
+                <h1 class="announcement-title"></h1>
+                <div class="announcement-body-viewport">
+                    <p class="announcement-body-text"></p>
+                </div>
+                <div class="announcement-progress-bar-container">
+                    <div class="announcement-progress-bar"></div>
+                </div>
+            </div>
+			<div class="image-panel hidden">
+                <img id="featured-image" src="" alt="Imagem de Destaque">
+			</div>
+		</main>
+
+        <aside class="sidebar">
+            <div class="widget weather-widget">
+                <h3>TEMPO EM UNIÃO DA VITÓRIA</h3>
+                <div class="weather-main">
+                    <iframe src="https://api.wo-cloud.com/content/widget/?geoObjectKey=7758211&language=pt&region=BR&timeFormat=HH:mm&windUnit=kmh&systemOfMeasurement=metric&temperatureUnit=celsius" 
+					name="CW2" 
+					scrolling="no" 
+					width="300" 
+					height="310" 
+					frameborder="0" 
+					style="border: 1px solid #10658E; border-radius: 8px;"></iframe>
+                </div>
+            </div>
+            <div class="widget events-widget">
+                <h3>PRÓXIMOS EVENTOS</h3>
+                <ul>
+                </ul>
+            </div>
+        </aside>
+
+        <footer class="dashboard-footer">
+            <p>ifpr.edu.br/uniao-da-vitoria</p>
+        </footer>
+
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script> <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+
+<script src="config.js"></script> 
+
+<script src="main.js"></script> </body>
+</html>

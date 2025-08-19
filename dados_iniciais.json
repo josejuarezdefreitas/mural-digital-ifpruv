@@ -1,0 +1,32 @@
+{
+  "muralDigital": {
+    "avisos": {
+      "aviso1": {
+        "titulo": "REUNIÃO DE PAIS E MESTRES",
+        "texto": "A reunião do 3º bimestre ocorrerá na próxima sexta-feira, dia 25/07, às 19h no auditório."
+      },
+      "aviso2": {
+        "titulo": "GINCANA CULTURAL 2025",
+        "texto": "As inscrições estão abertas! Monte sua equipe e procure a secretaria para mais informações."
+      },
+      "aviso3": {
+        "titulo": "DIA DO ESTUDANTE",
+        "texto": "No dia 11 de Agosto teremos atividades especiais e uma gincana para comemorar. Participe!"
+      }
+    },
+    "eventos": {
+      "evento1": {
+        "data": "25/07",
+        "descricao": "Reunião de Pais e Mestres"
+      },
+      "evento2": {
+        "data": "10/08",
+        "descricao": "Retorno das Férias"
+      },
+      "evento3": {
+        "data": "11/08",
+        "descricao": "Dia do Estudante"
+      }
+    }
+  }
+}

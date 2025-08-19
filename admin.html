@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle - Mural Digital</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+    <div id="login-container" class="login-container">
+        <form id="login-form" class="login-form">
+            <h2>Login - Painel de Controle</h2>
+            <div class="form-group">
+                <label for="login-email">Email:</label>
+                <input type="email" id="login-email" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Senha:</label>
+                <input type="password" id="login-password" required>
+            </div>
+            <button type="submit">Entrar</button>
+            <p id="login-error" class="error-message"></p>
+        </form>
+    </div>
+
+    <div id="main-content" class="container hidden">
+        <header>
+            <h1>Painel de Controle - Mural Digital</h1>
+            <button id="logout-button" class="logout-button">Sair</button>
+        </header>
+
+        <main class="grid-container">
+            <section class="card">
+                <h2>Gerenciar Avisos</h2>
+                <form id="aviso-form">
+                    <input type="hidden" id="aviso-id">
+                    <div class="form-group">
+                        <label for="aviso-titulo">Título:</label>
+                        <input type="text" id="aviso-titulo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="aviso-texto">Texto:</label>
+                        <textarea id="aviso-texto" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group-inline">
+                        <div class="form-group">
+                            <label for="aviso-inicio">Exibir a partir de:</label>
+                            <input type="date" id="aviso-inicio">
+                        </div>
+                        <div class="form-group">
+                            <label for="aviso-fim">Exibir até:</label>
+                            <input type="date" id="aviso-fim">
+                        </div>
+                    </div>
+                    <div class="form-group-checkbox">
+                        <input type="checkbox" id="aviso-urgente">
+                        <label for="aviso-urgente">Marcar como Urgente</label>
+                    </div>
+                    <button type="submit">Salvar Aviso</button>
+                    <button type="button" id="cancel-edit-aviso" class="hidden">Cancelar Edição</button>
+                </form>
+                <hr>
+                <h3>Avisos Atuais</h3>
+                <div id="avisos-lista"></div>
+            </section>
+
+            <section class="card">
+                <h2>Gerenciar Eventos</h2>
+                <form id="evento-form">
+                    <input type="hidden" id="evento-id">
+                    <div class="form-group">
+                        <label for="evento-data">Data (ex: 25/07):</label>
+                        <input type="text" id="evento-data" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="evento-descricao">Descrição:</label>
+                        <input type="text" id="evento-descricao" required>
+                    </div>
+                    <button type="submit">Salvar Evento</button>
+                     <button type="button" id="cancel-edit-evento" class="hidden">Cancelar Edição</button>
+                </form>
+                <hr>
+                <h3>Eventos Atuais</h3>
+                <div id="eventos-lista"></div>
+            </section>
+
+            <section class="card full-width">
+                <h2>Gerenciar Imagem de Destaque</h2>
+                <form id="image-form">
+                    <div class="form-group">
+                        <label for="image-url">URL da Imagem:</label>
+                        <input type="url" id="image-url" placeholder="https://exemplo.com/imagem.jpg">
+                    </div>
+                    <div class="form-group-checkbox">
+                        <input type="checkbox" id="image-active">
+                        <label for="image-active">Ativar Imagem (substitui os avisos)</label>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script> <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+
+<script src="config.js"></script> 
+
+<script src="main.js"></script> </body>
+</html>
