@@ -1,14 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
     
     // --- CONFIGURAÇÃO DO FIREBASE ---
-    
+    const firebaseConfig = {
+        apiKey: "AIzaSyD3nRSYKpSyCuxb22LjArnunZFN0CEsM_o",
+        authDomain: "painel-digital-ifpruv.firebaseapp.com",
+        databaseURL: "https://painel-digital-ifpruv-default-rtdb.firebaseio.com",
+        projectId: "painel-digital-ifpruv",
+        storageBucket: "painel-digital-ifpruv.firebasestorage.app",
+        messagingSenderId: "1047124757154",
+        appId: "1:1047124757154:web:60d6b122cc2f3ce18565fb"
+    };
 
     // --- INICIALIZAÇÃO DOS SERVIÇOS DO FIREBASE ---
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    // ... resto do arquivo admin.js (sem alterações)
+// O restante do arquivo admin.js permanece exatamente como está.
+// ...
     const database = firebase.database();
-    
-    // --- SELEÇÃO DOS ELEMENTOS DO DOM ---
     const loginContainer = document.getElementById('login-container');
     const mainContent = document.getElementById('main-content');
     const loginForm = document.getElementById('login-form');
@@ -16,71 +25,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginPasswordInput = document.getElementById('login-password');
     const loginError = document.getElementById('login-error');
     const logoutButton = document.getElementById('logout-button');
-
-    // Elementos do painel de controle
     const avisosLista = document.getElementById('avisos-lista');
     const avisoForm = document.getElementById('aviso-form');
     const eventosLista = document.getElementById('eventos-lista');
     const eventoForm = document.getElementById('evento-form');
     const imageUrlInput = document.getElementById('image-url');
     const imageActiveCheckbox = document.getElementById('image-active');
-
-    let dbRef; // Referência do banco de dados (será definida após o login)
-
-    // --- LÓGICA DE AUTENTICAÇÃO ---
-
-    // Lida com o envio do formulário de login
+    let dbRef;
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const email = loginEmailInput.value;
         const password = loginPasswordInput.value;
-        loginError.textContent = ''; // Limpa erros antigos
-
+        loginError.textContent = '';
         auth.signInWithEmailAndPassword(email, password)
             .catch((error) => {
                 console.error("Erro de autenticação:", error);
                 loginError.textContent = "E-mail ou senha incorretos.";
             });
     });
-
-    // Lida com o clique no botão de sair
     logoutButton.addEventListener('click', () => {
         auth.signOut();
     });
-
-    // Observador do estado de autenticação (a mágica acontece aqui)
     auth.onAuthStateChanged((user) => {
         if (user) {
-            // Usuário está logado
             loginContainer.classList.add('hidden');
             mainContent.classList.remove('hidden');
-            initAdminPanel(); // Inicia o painel de administração
+            initAdminPanel();
         } else {
-            // Usuário está deslogado
             mainContent.classList.add('hidden');
             loginContainer.classList.remove('hidden');
-            if (dbRef) dbRef.off(); // Para de ouvir os dados do banco
+            if (dbRef) dbRef.off();
         }
     });
-
-    // --- FUNÇÕES DO PAINEL DE ADMINISTRAÇÃO ---
-
     function initAdminPanel() {
         dbRef = database.ref('muralDigital');
-        
-        // --- RENDERIZAÇÃO ---
         function render(data = {}) {
             const avisos = data.avisos || {};
             const eventos = data.eventos || {};
             const imagem = data.imagem || { url: '', ativo: false };
-
             avisosLista.innerHTML = '';
             for (const id in avisos) {
                 const aviso = avisos[id];
                 const start = aviso.inicio ? `Início: ${aviso.inicio.split('-').reverse().join('/')}` : '';
                 const end = aviso.fim ? `Fim: ${aviso.fim.split('-').reverse().join('/')}` : '';
                 const urgent = aviso.urgente ? '<span class="urgent">URGENTE</span>' : '';
-                
                 avisosLista.innerHTML += `
                     <div class="item-lista">
                         <div class="info">
@@ -93,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>`;
             }
-            
             eventosLista.innerHTML = '';
             for (const id in eventos) {
                 const evento = eventos[id];
@@ -106,18 +93,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>`;
             }
-
             imageUrlInput.value = imagem.url || '';
             imageActiveCheckbox.checked = imagem.ativo || false;
         }
-
-        // --- ESCUTA DE DADOS DO FIREBASE ---
         dbRef.on('value', snapshot => {
             render(snapshot.val() || {});
         });
     }
-
-    // --- MANIPULAÇÃO DE FORMULÁRIOS (não muda) ---
     avisoForm.addEventListener('submit', e => {
         e.preventDefault();
         const id = avisoForm.querySelector('#aviso-id').value;
@@ -136,7 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
         avisoForm.reset();
         avisoForm.querySelector('#aviso-id').value = '';
     });
-    
     eventoForm.addEventListener('submit', e => {
         e.preventDefault();
         const id = eventoForm.querySelector('#evento-id').value;
@@ -152,11 +133,8 @@ document.addEventListener('DOMContentLoaded', () => {
         eventoForm.reset();
         eventoForm.querySelector('#evento-id').value = '';
     });
-
     imageUrlInput.addEventListener('change', (e) => database.ref('muralDigital/imagem/url').set(e.target.value));
     imageActiveCheckbox.addEventListener('change', (e) => database.ref('muralDigital/imagem/ativo').set(e.target.checked));
-
-    // --- BOTÕES DE EDITAR/EXCLUIR (não muda) ---
     document.body.addEventListener('click', e => {
         if (e.target.classList.contains('delete-btn')) {
             const { type, id } = e.target.dataset;
