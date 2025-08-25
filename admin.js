@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutButton = document.getElementById('logout-button');
     const avisoForm = document.getElementById('aviso-form');
     const eventoForm = document.getElementById('evento-form');
-    // NOVOS ELEMENTOS PARA IMAGENS
     const imageForm = document.getElementById('image-form');
     const imagesLista = document.getElementById('images-lista');
 
@@ -66,9 +65,11 @@ document.addEventListener('DOMContentLoaded', () => {
         function render(data = {}) {
             const avisos = data.avisos || {};
             const eventos = data.eventos || {};
-            const imagens = data.imagens || {}; // Alterado para 'imagens'
+            const imagens = data.imagens || {};
 
-            // Renderiza Avisos (sem alteração)
+            // --- CORREÇÃO INICIA AQUI ---
+            // A lógica de renderização para avisos e eventos foi restaurada.
+
             const avisosLista = document.getElementById('avisos-lista');
             avisosLista.innerHTML = '';
             for (const id in avisos) {
@@ -76,18 +77,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 const start = aviso.inicio ? `Início: ${aviso.inicio.split('-').reverse().join('/')}` : '';
                 const end = aviso.fim ? `Fim: ${aviso.fim.split('-').reverse().join('/')}` : '';
                 const urgent = aviso.urgente ? '<span class="urgent">URGENTE</span>' : '';
-                avisosLista.innerHTML += `<div class="item-lista">...</div>`; // Conteúdo omitido para brevidade
+                
+                avisosLista.innerHTML += `
+                    <div class="item-lista">
+                        <div class="info">
+                            <strong>${aviso.titulo}</strong><br>${aviso.texto}
+                            <span>${urgent} ${start} ${end}</span>
+                        </div>
+                        <div class="item-botoes">
+                            <button class="edit-btn" data-type="avisos" data-id="${id}">Editar</button>
+                            <button class="delete-btn" data-type="avisos" data-id="${id}">Excluir</button>
+                        </div>
+                    </div>`;
             }
             
-            // Renderiza Eventos (sem alteração)
             const eventosLista = document.getElementById('eventos-lista');
             eventosLista.innerHTML = '';
             for (const id in eventos) {
                 const evento = eventos[id];
-                eventosLista.innerHTML += `<div class="item-lista">...</div>`; // Conteúdo omitido para brevidade
+                eventosLista.innerHTML += `
+                    <div class="item-lista">
+                        <div><strong>${evento.data}</strong> - ${evento.descricao}</div>
+                        <div class="item-botoes">
+                            <button class="edit-btn" data-type="eventos" data-id="${id}">Editar</button>
+                            <button class="delete-btn" data-type="eventos" data-id="${id}">Excluir</button>
+                        </div>
+                    </div>`;
             }
 
-            // NOVA RENDERIZAÇÃO PARA IMAGENS
+            // --- FIM DA CORREÇÃO ---
+
             imagesLista.innerHTML = '';
             for (const id in imagens) {
                 const imagem = imagens[id];
@@ -111,10 +130,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- MANIPULAÇÃO DE FORMULÁRIOS ---
-    avisoForm.addEventListener('submit', e => { /* ... sem alterações ... */ });
-    eventoForm.addEventListener('submit', e => { /* ... sem alterações ... */ });
+    avisoForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const id = avisoForm.querySelector('#aviso-id').value;
+        const aviso = {
+            titulo: avisoForm.querySelector('#aviso-titulo').value,
+            texto: avisoForm.querySelector('#aviso-texto').value,
+            inicio: avisoForm.querySelector('#aviso-inicio').value,
+            fim: avisoForm.querySelector('#aviso-fim').value,
+            urgente: avisoForm.querySelector('#aviso-urgente').checked
+        };
+        if (id) {
+            database.ref(`muralDigital/avisos/${id}`).update(aviso);
+        } else {
+            database.ref('muralDigital/avisos').push(aviso);
+        }
+        avisoForm.reset();
+        avisoForm.querySelector('#aviso-id').value = '';
+    });
+    
+    eventoForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const id = eventoForm.querySelector('#evento-id').value;
+        const evento = {
+            data: eventoForm.querySelector('#evento-data').value,
+            descricao: eventoForm.querySelector('#evento-descricao').value
+        };
+        if (id) {
+            database.ref(`muralDigital/eventos/${id}`).update(evento);
+        } else {
+            database.ref('muralDigital/eventos').push(evento);
+        }
+        eventoForm.reset();
+        eventoForm.querySelector('#evento-id').value = '';
+    });
 
-    // NOVO HANDLER PARA O FORMULÁRIO DE IMAGEM
     imageForm.addEventListener('submit', e => {
         e.preventDefault();
         const imagem = {
@@ -125,18 +175,32 @@ document.addEventListener('DOMContentLoaded', () => {
         imageForm.reset();
     });
 
-    // --- BOTÕES DE EDITAR/EXCLUIR (com pequena adição) ---
+    // --- BOTÕES DE EDITAR/EXCLUIR ---
     document.body.addEventListener('click', e => {
         const target = e.target;
         if (target.classList.contains('delete-btn')) {
             const { type, id } = target.dataset;
             if (confirm('Tem certeza que deseja excluir este item?')) {
-                // O 'type' agora pode ser 'avisos', 'eventos' ou 'imagens'
                 database.ref(`muralDigital/${type}/${id}`).remove();
             }
         }
         if (target.classList.contains('edit-btn')) {
-            // Lógica de edição (sem alterações)
+            const { type, id } = target.dataset;
+            dbRef.child(type).child(id).once('value', snapshot => {
+                const item = snapshot.val();
+                if (type === 'avisos') {
+                    avisoForm.querySelector('#aviso-id').value = id;
+                    avisoForm.querySelector('#aviso-titulo').value = item.titulo;
+                    avisoForm.querySelector('#aviso-texto').value = item.texto;
+                    avisoForm.querySelector('#aviso-inicio').value = item.inicio || '';
+                    avisoForm.querySelector('#aviso-fim').value = item.fim || '';
+                    avisoForm.querySelector('#aviso-urgente').checked = item.urgente || false;
+                } else if (type === 'eventos') {
+                    eventoForm.querySelector('#evento-id').value = id;
+                    eventoForm.querySelector('#evento-data').value = item.data;
+                    eventoForm.querySelector('#evento-descricao').value = item.descricao;
+                }
+            });
         }
     });
 });
