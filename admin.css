@@ -80,6 +80,13 @@ header {
     margin-top: 0;
     color: #047857;
 }
+.subtitle {
+    font-size: 0.9rem;
+    color: #555;
+    margin-top: -10px;
+    margin-bottom: 20px;
+}
+
 .form-group {
     margin-bottom: 1rem;
     text-align: left;
@@ -87,6 +94,7 @@ header {
 .form-group-inline {
     display: flex;
     gap: 1rem;
+    align-items: flex-end; /* Alinha o botão com os inputs */
 }
 .form-group-inline .form-group {
     flex: 1;
@@ -101,7 +109,7 @@ label {
     margin-bottom: 5px;
     font-weight: bold;
 }
-input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="date"], textarea, select {
+input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="date"], input[type="number"], textarea, select {
     width: 100%;
     padding: 10px;
     border: 1px solid #ccc;
@@ -115,7 +123,7 @@ button {
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color: 0.3s;
     width: 100%;
     font-size: 1rem;
 }
@@ -140,6 +148,21 @@ hr {
     justify-content: space-between;
     align-items: center;
     gap: 10px;
+}
+/* Estilo específico para a lista de imagens */
+.image-item {
+    align-items: center;
+}
+.image-item img {
+    height: 50px;
+    width: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 15px;
+}
+.image-item .info {
+    flex-grow: 1;
+    word-break: break-all;
 }
 .item-lista .info span {
     display: block;

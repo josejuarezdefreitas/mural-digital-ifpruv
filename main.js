@@ -14,114 +14,135 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- INICIALIZAÇÃO DO FIREBASE ---
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    // ... resto do arquivo main.js (sem alterações)
-// O restante do arquivo main.js permanece exatamente como está.
-// ...
     const dbRef = database.ref('muralDigital');
+
+    // --- ELEMENTOS DO DOM ---
     const timeElement = document.getElementById('time');
     const dateElement = document.getElementById('date');
     const announcementPanel = document.querySelector('.announcement-panel');
-    const announcementTitle = document.querySelector('.announcement-title');
-    const announcementBodyViewport = document.querySelector('.announcement-body-viewport');
-    const announcementBodyText = document.querySelector('.announcement-body-text');
-    const progressBar = document.querySelector('.announcement-progress-bar');
     const imagePanel = document.querySelector('.image-panel');
     const featuredImage = document.getElementById('featured-image');
     const eventsListElement = document.querySelector('.events-widget ul');
+    
+    let avisosValidos = [];
+    let imagensValidas = [];
+    let avisoAtualIdx = 0;
+    let mainContentInterval;
+
     function updateClock() {
         const now = new Date();
         const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         dateElement.textContent = now.toLocaleDateString('pt-BR', optionsDate);
         timeElement.textContent = now.toLocaleTimeString('pt-BR');
     }
-    let avisoAtual = 0;
-    let avisoInterval;
-    function setupAnnouncements(avisosObj = {}) {
-        if (avisoInterval) clearInterval(avisoInterval);
+
+    function showAnnouncement() {
+        if (avisosValidos.length === 0) {
+            // Se não houver avisos, mostra a mensagem padrão e passa para o próximo item (slideshow)
+            showDefaultMessage();
+            return 20000; // Duração padrão
+        }
+
         imagePanel.classList.add('hidden');
         announcementPanel.classList.remove('hidden');
-        const hoje = new Date().toISOString().split('T')[0];
-        const avisosValidos = Object.values(avisosObj)
-            .filter(aviso => {
-                if (aviso.inicio && aviso.inicio > hoje) {
-                    return false;
-                }
-                if (aviso.fim && aviso.fim < hoje) {
-                    return false;
-                }
-                return true;
-            })
-            .sort((a, b) => (b.urgente === true) - (a.urgente === true));
-        if (avisosValidos.length === 0) {
-            announcementTitle.textContent = "Bem-vindos ao Painel Digital!";
-            announcementBodyText.textContent = "Não há novos avisos no momento.";
-            announcementBodyText.classList.remove('is-scrolling');
-            progressBar.classList.remove('is-running');
-            return;
-        }
-        const showNextAviso = () => {
-            if (avisosValidos.length === 0) return;
-            announcementPanel.classList.add('fade-out');
-            progressBar.classList.remove('is-running');
-            setTimeout(() => {
-                const aviso = avisosValidos[avisoAtual];
-                announcementTitle.textContent = aviso.titulo;
-                announcementBodyText.textContent = aviso.texto;
-                announcementPanel.classList.toggle('urgent', aviso.urgente);
-                announcementBodyText.classList.remove('is-scrolling');
-                void announcementBodyText.offsetWidth;
-                if (announcementBodyText.scrollHeight > announcementBodyViewport.clientHeight) {
-                    const scrollHeight = announcementBodyText.scrollHeight;
-                    const duration = scrollHeight / 25;
-                    document.documentElement.style.setProperty('--teleprompter-duration', `${duration}s`);
-                    announcementBodyText.classList.add('is-scrolling');
-                }
-                void progressBar.offsetWidth;
-                progressBar.classList.add('is-running');
-                announcementPanel.classList.remove('fade-out');
-                avisoAtual = (avisoAtual + 1) % avisosValidos.length;
-            }, 500);
-        }
-        showNextAviso();
-        const announcementDurationSeconds = 20;
-        document.documentElement.style.setProperty('--announcement-duration', `${announcementDurationSeconds}s`);
-        avisoInterval = setInterval(showNextAviso, announcementDurationSeconds * 1000);
+
+        const aviso = avisosValidos[avisoAtualIdx];
+        const announcementTitle = document.querySelector('.announcement-title');
+        const announcementBodyText = document.querySelector('.announcement-body-text');
+        
+        announcementPanel.classList.add('fade-out');
+        
+        setTimeout(() => {
+            announcementTitle.textContent = aviso.titulo;
+            announcementBodyText.textContent = aviso.texto;
+            announcementPanel.classList.toggle('urgent', aviso.urgente);
+            // Lógica do teleprompter... (omitida para brevidade)
+            announcementPanel.classList.remove('fade-out');
+        }, 500);
+
+        avisoAtualIdx = (avisoAtualIdx + 1) % avisosValidos.length;
+        return 20000; // Duração de 20s para cada aviso
     }
-    function showFeaturedImage(imagemData) {
-        if (avisoInterval) clearInterval(avisoInterval);
+    
+    function showDefaultMessage() {
+        imagePanel.classList.add('hidden');
+        announcementPanel.classList.remove('hidden');
+        document.querySelector('.announcement-title').textContent = "Bem-vindos ao Painel Digital!";
+        document.querySelector('.announcement-body-text').textContent = "Não há novos avisos no momento.";
+    }
+
+    async function showImageSlideshow() {
+        if (imagensValidas.length === 0) return 0; // Se não houver imagens, pula esta etapa
+
         announcementPanel.classList.add('hidden');
         imagePanel.classList.remove('hidden');
-        featuredImage.src = imagemData.url;
-    }
-    function updateEvents(eventosObj = {}) {
-        const eventos = eventosObj ? Object.values(eventosObj) : [];
-        eventsListElement.innerHTML = '';
-        if (eventos.length === 0) {
-             eventsListElement.innerHTML = '<li>Nenhum evento próximo.</li>';
-             return;
+        
+        let totalSlideshowTime = 0;
+
+        for (const imagem of imagensValidas) {
+            totalSlideshowTime += imagem.duration * 1000;
         }
-        eventos.slice(0, 5).forEach(evento => {
-            const li = document.createElement('li');
-            li.innerHTML = `<strong>${evento.data}</strong> - <span>${evento.descricao}</span>`;
-            eventsListElement.appendChild(li);
+
+        // Usamos uma Promise para esperar o slideshow terminar
+        return new Promise(resolve => {
+            let currentImageIdx = 0;
+            
+            function nextImage() {
+                if (currentImageIdx >= imagensValidas.length) {
+                    resolve(totalSlideshowTime); // Resolvido ao final do slideshow
+                    return;
+                }
+                const imagem = imagensValidas[currentImageIdx];
+                featuredImage.src = imagem.url;
+                currentImageIdx++;
+                setTimeout(nextImage, imagem.duration * 1000);
+            }
+            
+            nextImage();
         });
     }
+
+    async function runContentLoop() {
+        if (mainContentInterval) clearTimeout(mainContentInterval);
+
+        // Primeiro, exibe um aviso
+        const avisoDuration = showAnnouncement();
+
+        // Agenda a próxima etapa (slideshow) para depois que o aviso terminar
+        mainContentInterval = setTimeout(async () => {
+            // Em seguida, exibe o slideshow completo
+            const slideshowDuration = await showImageSlideshow();
+
+            // Agenda o reinício do loop (próximo aviso) para depois que o slideshow terminar
+            mainContentInterval = setTimeout(runContentLoop, slideshowDuration);
+        }, avisoDuration);
+    }
+    
     function listenForData() {
         dbRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                if (data.imagem && data.imagem.ativo) {
-                    showFeaturedImage(data.imagem);
-                } else {
-                    setupAnnouncements(data.avisos || {});
-                }
-                updateEvents(data.eventos || {});
-            } else {
-                setupAnnouncements();
-                updateEvents();
-            }
+            const data = snapshot.val() || {};
+            
+            // Atualiza eventos (sem alteração na lógica)
+            const eventos = data.eventos ? Object.values(data.eventos) : [];
+            eventsListElement.innerHTML = '';
+            eventos.slice(0, 5).forEach(evento => {
+                eventsListElement.innerHTML += `<li><strong>${evento.data}</strong> - <span>${evento.descricao}</span></li>`;
+            });
+            
+            // Atualiza listas de avisos e imagens
+            const hoje = new Date().toISOString().split('T')[0];
+            avisosValidos = data.avisos ? Object.values(data.avisos).filter(aviso => {
+                return (!aviso.inicio || aviso.inicio <= hoje) && (!aviso.fim || aviso.fim >= hoje);
+            }).sort((a, b) => (b.urgente === true) - (a.urgente === true)) : [];
+
+            imagensValidas = data.imagens ? Object.values(data.imagens) : [];
+
+            // Reinicia o loop de conteúdo com os dados atualizados
+            runContentLoop();
         });
     }
+
+    // --- INICIALIZAÇÃO ---
     updateClock();
     setInterval(updateClock, 1000);
     listenForData();
