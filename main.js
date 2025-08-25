@@ -57,24 +57,20 @@ document.addEventListener('DOMContentLoaded', () => {
             announcementBodyText.textContent = aviso.texto;
             announcementPanel.classList.toggle('urgent', aviso.urgente);
 
-            // --- INÍCIO DA CORREÇÃO E MELHORIA DO TELEPROMPTER ---
-            // Remove a classe de rolagem para resetar a animação
+            // --- LÓGICA DO TELEPROMPTER CORRIGIDA ---
             announcementBodyText.classList.remove('is-scrolling');
-            
-            // Força o navegador a recalcular o layout, necessário para a animação reiniciar
-            void announcementBodyText.offsetWidth; 
-            
-            // Verifica se o texto é maior que a área visível
-            if (announcementBodyText.scrollHeight > announcementBodyViewport.clientHeight) {
-                // Calcula uma duração dinâmica para a animação ter velocidade constante
-                // Base: 40 pixels por segundo (ajuste este valor para mudar a velocidade)
-                const scrollHeight = announcementBodyText.scrollHeight;
-                const duration = scrollHeight / 40; 
-                document.documentElement.style.setProperty('--teleprompter-duration', `${duration}s`);
-                
-                // Adiciona a classe que inicia a animação de rolagem
-                announcementBodyText.classList.add('is-scrolling');
-            }
+
+            // Usamos requestAnimationFrame para garantir que a medição ocorra após a renderização
+            requestAnimationFrame(() => {
+                const isOverflowing = announcementBodyText.scrollHeight > announcementBodyViewport.clientHeight;
+
+                if (isOverflowing) {
+                    const scrollHeight = announcementBodyText.scrollHeight;
+                    const duration = scrollHeight / 40; // Velocidade de 40 pixels/segundo
+                    document.documentElement.style.setProperty('--teleprompter-duration', `${duration}s`);
+                    announcementBodyText.classList.add('is-scrolling');
+                }
+            });
             // --- FIM DA CORREÇÃO ---
 
             announcementPanel.classList.remove('fade-out');
