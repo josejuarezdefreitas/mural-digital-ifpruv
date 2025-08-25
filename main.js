@@ -22,8 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const announcementPanel = document.querySelector('.announcement-panel');
     const imagePanel = document.querySelector('.image-panel');
     const featuredImage = document.getElementById('featured-image');
-    const eventsListElement = document.querySelector('.events-widget ul');
-    
+    const eventsContentElement = document.querySelector('.events-content'); // Alterado para o novo container
+
     let avisosValidos = [];
     let imagensValidas = [];
     let avisoAtualIdx = 0;
@@ -37,10 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showAnnouncement() {
+        // ... (esta função permanece a mesma)
         if (avisosValidos.length === 0) {
-            // Se não houver avisos, mostra a mensagem padrão e passa para o próximo item (slideshow)
             showDefaultMessage();
-            return 20000; // Duração padrão
+            return 20000;
         }
 
         imagePanel.classList.add('hidden');
@@ -56,15 +56,15 @@ document.addEventListener('DOMContentLoaded', () => {
             announcementTitle.textContent = aviso.titulo;
             announcementBodyText.textContent = aviso.texto;
             announcementPanel.classList.toggle('urgent', aviso.urgente);
-            // Lógica do teleprompter... (omitida para brevidade)
             announcementPanel.classList.remove('fade-out');
         }, 500);
 
         avisoAtualIdx = (avisoAtualIdx + 1) % avisosValidos.length;
-        return 20000; // Duração de 20s para cada aviso
+        return 20000;
     }
     
     function showDefaultMessage() {
+        // ... (esta função permanece a mesma)
         imagePanel.classList.add('hidden');
         announcementPanel.classList.remove('hidden');
         document.querySelector('.announcement-title').textContent = "Bem-vindos ao Painel Digital!";
@@ -72,24 +72,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function showImageSlideshow() {
-        if (imagensValidas.length === 0) return 0; // Se não houver imagens, pula esta etapa
+        // ... (esta função permanece a mesma)
+        if (imagensValidas.length === 0) return 0;
 
         announcementPanel.classList.add('hidden');
         imagePanel.classList.remove('hidden');
         
         let totalSlideshowTime = 0;
-
         for (const imagem of imagensValidas) {
             totalSlideshowTime += imagem.duration * 1000;
         }
 
-        // Usamos uma Promise para esperar o slideshow terminar
         return new Promise(resolve => {
             let currentImageIdx = 0;
-            
             function nextImage() {
                 if (currentImageIdx >= imagensValidas.length) {
-                    resolve(totalSlideshowTime); // Resolvido ao final do slideshow
+                    resolve(totalSlideshowTime);
                     return;
                 }
                 const imagem = imagensValidas[currentImageIdx];
@@ -97,23 +95,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentImageIdx++;
                 setTimeout(nextImage, imagem.duration * 1000);
             }
-            
             nextImage();
         });
     }
 
     async function runContentLoop() {
+        // ... (esta função permanece a mesma)
         if (mainContentInterval) clearTimeout(mainContentInterval);
-
-        // Primeiro, exibe um aviso
         const avisoDuration = showAnnouncement();
-
-        // Agenda a próxima etapa (slideshow) para depois que o aviso terminar
         mainContentInterval = setTimeout(async () => {
-            // Em seguida, exibe o slideshow completo
             const slideshowDuration = await showImageSlideshow();
-
-            // Agenda o reinício do loop (próximo aviso) para depois que o slideshow terminar
             mainContentInterval = setTimeout(runContentLoop, slideshowDuration);
         }, avisoDuration);
     }
@@ -122,14 +113,28 @@ document.addEventListener('DOMContentLoaded', () => {
         dbRef.on('value', (snapshot) => {
             const data = snapshot.val() || {};
             
-            // Atualiza eventos (sem alteração na lógica)
+            // --- LÓGICA DE EVENTOS ATUALIZADA ---
             const eventos = data.eventos ? Object.values(data.eventos) : [];
-            eventsListElement.innerHTML = '';
-            eventos.slice(0, 5).forEach(evento => {
-                eventsListElement.innerHTML += `<li><strong>${evento.data}</strong> - <span>${evento.descricao}</span></li>`;
-            });
+            eventsContentElement.innerHTML = ''; // Limpa o conteúdo anterior
+
+            if (eventos.length > 0) {
+                eventos.forEach(evento => {
+                    const eventSpan = document.createElement('span');
+                    eventSpan.classList.add('event-item');
+                    eventSpan.innerHTML = `<strong>${evento.data}</strong> - <span>${evento.descricao}</span>`;
+                    eventsContentElement.appendChild(eventSpan);
+                });
+
+                // Calcula a duração da animação para manter a velocidade constante
+                // Base: 15 segundos para cada 3 eventos (ajuste conforme necessário)
+                const animationDuration = Math.max(15, eventos.length * 5);
+                eventsContentElement.style.animationDuration = `${animationDuration}s`;
+            } else {
+                eventsContentElement.innerHTML = '<span class="event-item">Nenhum evento próximo.</span>';
+                eventsContentElement.style.animationDuration = '0s'; // Para a animação
+            }
             
-            // Atualiza listas de avisos e imagens
+            // Atualiza listas de avisos e imagens (sem alteração)
             const hoje = new Date().toISOString().split('T')[0];
             avisosValidos = data.avisos ? Object.values(data.avisos).filter(aviso => {
                 return (!aviso.inicio || aviso.inicio <= hoje) && (!aviso.fim || aviso.fim >= hoje);
