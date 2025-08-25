@@ -20,9 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeElement = document.getElementById('time');
     const dateElement = document.getElementById('date');
     const announcementPanel = document.querySelector('.announcement-panel');
+    const announcementTitle = document.querySelector('.announcement-title');
+    const announcementBodyViewport = document.querySelector('.announcement-body-viewport');
+    const announcementBodyText = document.querySelector('.announcement-body-text');
     const imagePanel = document.querySelector('.image-panel');
     const featuredImage = document.getElementById('featured-image');
-    const eventsContentElement = document.querySelector('.events-content'); // Alterado para o novo container
+    const eventsContentElement = document.querySelector('.events-content');
 
     let avisosValidos = [];
     let imagensValidas = [];
@@ -37,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showAnnouncement() {
-        // ... (esta função permanece a mesma)
         if (avisosValidos.length === 0) {
             showDefaultMessage();
             return 20000;
@@ -47,8 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
         announcementPanel.classList.remove('hidden');
 
         const aviso = avisosValidos[avisoAtualIdx];
-        const announcementTitle = document.querySelector('.announcement-title');
-        const announcementBodyText = document.querySelector('.announcement-body-text');
         
         announcementPanel.classList.add('fade-out');
         
@@ -56,6 +56,27 @@ document.addEventListener('DOMContentLoaded', () => {
             announcementTitle.textContent = aviso.titulo;
             announcementBodyText.textContent = aviso.texto;
             announcementPanel.classList.toggle('urgent', aviso.urgente);
+
+            // --- INÍCIO DA CORREÇÃO E MELHORIA DO TELEPROMPTER ---
+            // Remove a classe de rolagem para resetar a animação
+            announcementBodyText.classList.remove('is-scrolling');
+            
+            // Força o navegador a recalcular o layout, necessário para a animação reiniciar
+            void announcementBodyText.offsetWidth; 
+            
+            // Verifica se o texto é maior que a área visível
+            if (announcementBodyText.scrollHeight > announcementBodyViewport.clientHeight) {
+                // Calcula uma duração dinâmica para a animação ter velocidade constante
+                // Base: 40 pixels por segundo (ajuste este valor para mudar a velocidade)
+                const scrollHeight = announcementBodyText.scrollHeight;
+                const duration = scrollHeight / 40; 
+                document.documentElement.style.setProperty('--teleprompter-duration', `${duration}s`);
+                
+                // Adiciona a classe que inicia a animação de rolagem
+                announcementBodyText.classList.add('is-scrolling');
+            }
+            // --- FIM DA CORREÇÃO ---
+
             announcementPanel.classList.remove('fade-out');
         }, 500);
 
@@ -64,15 +85,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function showDefaultMessage() {
-        // ... (esta função permanece a mesma)
         imagePanel.classList.add('hidden');
         announcementPanel.classList.remove('hidden');
-        document.querySelector('.announcement-title').textContent = "Bem-vindos ao Painel Digital!";
-        document.querySelector('.announcement-body-text').textContent = "Não há novos avisos no momento.";
+        announcementTitle.textContent = "Bem-vindos ao Painel Digital!";
+        announcementBodyText.textContent = "Não há novos avisos no momento.";
+        announcementBodyText.classList.remove('is-scrolling');
     }
 
     async function showImageSlideshow() {
-        // ... (esta função permanece a mesma)
         if (imagensValidas.length === 0) return 0;
 
         announcementPanel.classList.add('hidden');
@@ -100,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function runContentLoop() {
-        // ... (esta função permanece a mesma)
         if (mainContentInterval) clearTimeout(mainContentInterval);
         const avisoDuration = showAnnouncement();
         mainContentInterval = setTimeout(async () => {
@@ -113,9 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
         dbRef.on('value', (snapshot) => {
             const data = snapshot.val() || {};
             
-            // --- LÓGICA DE EVENTOS ATUALIZADA ---
             const eventos = data.eventos ? Object.values(data.eventos) : [];
-            eventsContentElement.innerHTML = ''; // Limpa o conteúdo anterior
+            eventsContentElement.innerHTML = '';
 
             if (eventos.length > 0) {
                 eventos.forEach(evento => {
@@ -125,16 +143,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     eventsContentElement.appendChild(eventSpan);
                 });
 
-                // Calcula a duração da animação para manter a velocidade constante
-                // Base: 15 segundos para cada 3 eventos (ajuste conforme necessário)
                 const animationDuration = Math.max(15, eventos.length * 5);
                 eventsContentElement.style.animationDuration = `${animationDuration}s`;
             } else {
                 eventsContentElement.innerHTML = '<span class="event-item">Nenhum evento próximo.</span>';
-                eventsContentElement.style.animationDuration = '0s'; // Para a animação
+                eventsContentElement.style.animationDuration = '0s';
             }
             
-            // Atualiza listas de avisos e imagens (sem alteração)
             const hoje = new Date().toISOString().split('T')[0];
             avisosValidos = data.avisos ? Object.values(data.avisos).filter(aviso => {
                 return (!aviso.inicio || aviso.inicio <= hoje) && (!aviso.fim || aviso.fim >= hoje);
@@ -142,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             imagensValidas = data.imagens ? Object.values(data.imagens) : [];
 
-            // Reinicia o loop de conteúdo com os dados atualizados
             runContentLoop();
         });
     }
